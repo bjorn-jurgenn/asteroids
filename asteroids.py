@@ -15,7 +15,7 @@ ACCELERATION = 300
 LASER_SPEED = 300
 LASER_SIZE = 8
 MAX_LEVEL = 3
-ASTEROIDS = [3, 5, 8] #number of asteroids generated in level 
+ASTEROIDS = [3, 5, 8] #number of asteroids generated in level
 
 status = '.'
 objects = []
@@ -33,7 +33,7 @@ label = pyglet.text.Label(f'LEVEL {level}',
 level_label = pyglet.text.Label('LEVEL 1',
                         font_size=LEVEL_SIZE,
                         x=window.width - LEVEL_SIZE // 2, y=LEVEL_SIZE // 2,
-                        anchor_x='right', batch=batch) 
+                        anchor_x='right', batch=batch)
 
 class SpaceObject:
     """Class containgn all space objects"""
@@ -82,11 +82,11 @@ class SpaceObject:
         """Delete space object and its sprite"""
         self.sprite.delete()
         objects.remove(self)
-              
+
 class Spaceship(SpaceObject):
     """Class containing spaceship"""
     def __init__(self):
-        """Initialize spaceship, adds shooting ability (in seconds), calculates radius"""      
+        """Initialize spaceship, adds shooting ability (in seconds), calculates radius"""
         self.ingame = False
         self.shooting_ability = float(0.3) #ability to shoot once 0.3 second
         img = pyglet.image.load('img/spaceship.png')
@@ -94,53 +94,51 @@ class Spaceship(SpaceObject):
             self.radius = img.height // 2
         else:
             self.radius = img.width // 2
-        super().__init__(WIDTH // 2, HEIGHT // 2, uniform(-(math.pi) / 2, math.pi / 2), img) 
-        
-    
+        super().__init__(WIDTH // 2, HEIGHT // 2, uniform(-(math.pi) / 2, math.pi / 2), img)
+
     def set_ingame(self, *args):
         """Changes ingame status of Spaceship (ship can be now destroyed by asteroid)"""
-        pyglet.clock.unschedule(self.set_ingame) 
+        pyglet.clock.unschedule(self.set_ingame)
         self.ingame = True
         return self
-
 
     def shoot(self):
         """Posibility to shoots laser creates instance of class laser"""
         laser = Laser(self.x, self.y, self.rotation)
         objects.append(laser)
-    
+
     def hit_by_asteroid(self):
         """Returns true if Spaceship is hit by asteroid"""
         for item in objects:
                 if isinstance(item, Asteroid):
                     a = abs(self.x - item.x)
-                    b = abs(self.y - item.y) 
+                    b = abs(self.y - item.y)
                     distance = math.sqrt(a**2 + b**2)
                     if (self.radius + item.radius) > distance:
                         print('Hit by asteroid')
                         return True
-                        
+
 
     def tick(self, dt):
-        """Operates the ship - moving, rotating, controls        
+        """Operates the ship - moving, rotating, controls
         checks if ship is hit by asteroid and if it is, deletes the ship"""
         self.shooting_ability -=  dt
         if 'UP' in pressed_keys:
-            self.x_speed += dt * ACCELERATION * math.cos(self.rotation) 
-            self.y_speed += dt * ACCELERATION * math.sin(self.rotation) 
+            self.x_speed += dt * ACCELERATION * math.cos(self.rotation)
+            self.y_speed += dt * ACCELERATION * math.sin(self.rotation)
         if 'DOWN' in pressed_keys:
-            self.x_speed -= dt * ACCELERATION * math.cos(self.rotation) 
-            self.y_speed -= dt * ACCELERATION * math.sin(self.rotation) 
+            self.x_speed -= dt * ACCELERATION * math.cos(self.rotation)
+            self.y_speed -= dt * ACCELERATION * math.sin(self.rotation)
         if 'LEFT' in pressed_keys:
-            self.rotation = self.rotation + dt * ROTATION_SPEED  
+            self.rotation = self.rotation + dt * ROTATION_SPEED
         if 'RIGHT' in pressed_keys:
-            self.rotation = self.rotation - dt * ROTATION_SPEED  
+            self.rotation = self.rotation - dt * ROTATION_SPEED
         if ('SPACE' in pressed_keys) and (self.shooting_ability < 0):
             self.shooting_ability = float(0.3)
             self.shoot()
         super().tick(dt)
         if self.hit_by_asteroid() and self.ingame == True:
-            self.delete()      
+            self.delete()
 
 class Laser(SpaceObject):
     """Class containing laser"""
@@ -157,12 +155,12 @@ class Laser(SpaceObject):
         """Movement of laser,
         if duration expires, the laser disappears"""
         self.x_speed = dt * LASER_SPEED * ACCELERATION * math.cos(self.rotation)
-        self.y_speed = dt * LASER_SPEED * ACCELERATION * math.sin(self.rotation) 
+        self.y_speed = dt * LASER_SPEED * ACCELERATION * math.sin(self.rotation)
         super().tick(dt)
 
         # laser travel lenght
         a = abs(self.x - self.x_start)
-        b = abs(self.y - self.y_start) 
+        b = abs(self.y - self.y_start)
         self.travelled = math.sqrt(a**2 + b**2)
 
         if self.duration <= self.travelled:
@@ -171,7 +169,7 @@ class Laser(SpaceObject):
 class Asteroid(SpaceObject):
     """Class containing laser"""
     def __init__(self):
-        """Initialize asteroid 
+        """Initialize asteroid
         add image, count radius, set direction and speed coeficient"""
         img_path = ASTEROID_IMG[randint(0,6)]
         img = pyglet.image.load(img_path) #img_path
@@ -187,21 +185,20 @@ class Asteroid(SpaceObject):
         else:
             super().__init__(self.radius, randint(self.radius, HEIGHT - self.radius), uniform(-(math.pi) / 2, math.pi / 2), img)
 
-        #random speed coeficient depends on level (for each level is tuple in 'level_speed' list) 
-        self.speed_coef = randint(level_speed[level - 1][0], level_speed[level - 1][0]) 
-        
+        #random speed coeficient depends on level (for each level is tuple in 'level_speed' list)
+        self.speed_coef = randint(level_speed[level - 1][0], level_speed[level - 1][0])
 
     def tick(self, dt):
         """Movement of asteroid
         checks if asteroid was hit by laser"""
-        self.x_speed = dt * self.speed_coef * ACCELERATION * math.cos(self.rotation) 
-        self.y_speed = dt * self.speed_coef * ACCELERATION * math.sin(self.rotation) 
+        self.x_speed = dt * self.speed_coef * ACCELERATION * math.cos(self.rotation)
+        self.y_speed = dt * self.speed_coef * ACCELERATION * math.sin(self.rotation)
         super().tick(dt)
 
         #check if the asteroid was hit by some of the laser
         for item in objects:
             if isinstance(item, Laser):
-                shortest = math.sqrt(WIDTH ** 2 + HEIGHT ** 2)  
+                shortest = math.sqrt(WIDTH ** 2 + HEIGHT ** 2)
                 #finds shortest distance between laser and center of asteroid
                 for i in range((item.length // 2) + 1):
                     for k in (-1,1):
@@ -215,7 +212,7 @@ class Asteroid(SpaceObject):
                 # if the distance is shorter then radius of asteroid - the asteroid was hit
                 if shortest <= self.radius + LASER_SIZE:
                     self.delete()
-                    
+
 class Lives:
     """Class containing count of lives and its sprite"""
     def __init__(self, count):
@@ -225,10 +222,10 @@ class Lives:
         for i in range(self.count):
             img = pyglet.image.load('img/spaceship.png')
             scale = 0.4
-            indentation = (img.height // 4) * scale + (i * img.height * scale * 1.5)   
+            indentation = (img.height // 4) * scale + (i * img.height * scale * 1.5)
             self.sprites.append(pyglet.sprite.Sprite(img, x=indentation, y=(img.height // 4) * scale,batch=batch))
             self.sprites[i].scale = scale
-    
+
     def remove(self):
         """Remove one life and its sprite"""
         if self.count > 0:
@@ -277,7 +274,7 @@ def refresh(dt):
     global status, label
     status = get_status()
     if status == '+':
-        pyglet.clock.schedule_once(restart_game, 3, '+')  
+        pyglet.clock.schedule_once(restart_game, 3, '+')
         label.text = 'NEXT LEVEL'
         status = '.'
     elif status == '-':
@@ -287,14 +284,14 @@ def refresh(dt):
         status = '.'
     elif status == 'x':
         label.text = 'GAME OVER'
-        lives.remove()     
-        status = '.'  
-    elif status == '*':  
-        label.text = 'VICTORY'  
+        lives.remove()
+        status = '.'
+    elif status == '*':
+        label.text = 'VICTORY'
     else:
         for item in objects:
-            item.tick(dt)   
-    
+            item.tick(dt)
+
 def press_key(symbol, modificator):
     """Checks if pressed key is one of control keys and add it to the 'pressed_key' variable"""
     if symbol == key.UP:
@@ -352,9 +349,9 @@ def set_game(*args):
     global level, status
     for i in range(ASTEROIDS[level - 1]):
         objects.append(Asteroid())
-    
+
     status = None
-    
+
 def restart_game(dt, status):
     """Restarts after end of level or losing life"""
     global level
@@ -365,8 +362,8 @@ def restart_game(dt, status):
 
     label.text = f'LEVEL {level}'
     level_label.text = f'LEVEL {level}'
-    pyglet.clock.schedule_once(set_game, 3) 
-    
+    pyglet.clock.schedule_once(set_game, 3)
+
 
 
 window.push_handlers(
