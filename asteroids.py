@@ -115,7 +115,6 @@ class Spaceship(SpaceObject):
                     b = abs(self.y - item.y)
                     distance = math.sqrt(a**2 + b**2)
                     if (self.radius + item.radius) > distance:
-                        print('Hit by asteroid')
                         return True
 
 
